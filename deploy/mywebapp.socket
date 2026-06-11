@@ -1,0 +1,8 @@
+[Unit]
+Description=My Web App Activation Socket
+
+[Socket]
+ListenStream=127.0.0.1:5200
+
+[Install]
+WantedBy=sockets.target

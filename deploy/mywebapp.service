@@ -1,0 +1,16 @@
+[Unit]
+Description=My Web App FastAPI Service
+Requires=mywebapp.socket
+After=network.target mariadb.service
+
+[Service]
+User=mywebapp
+Group=mywebapp
+WorkingDirectory=/opt/mywebapp
+ExecStartPre=/opt/mywebapp/.venv/bin/python app/migrate.py --db-host 127.0.0.1 --db-user app_user --db-password app_password --db-name inventory_db
+ExecStart=/opt/mywebapp/.venv/bin/python app/main.py --db-host 127.0.0.1 --db-user app_user --db-password app_password --db-name inventory_db
+Restart=always
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
