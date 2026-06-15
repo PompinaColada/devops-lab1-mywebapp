@@ -17,6 +17,7 @@ args, unknown = parser.parse_known_args()
 
 db_pool = None
 
+
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     global db_pool
@@ -36,11 +37,14 @@ async def lifespan(app: FastAPI):
         db_pool.close()
         await db_pool.wait_closed()
 
+
 app = FastAPI(lifespan=lifespan)
+
 
 class ItemCreate(BaseModel):
     name: str
     quantity: int
+
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
@@ -53,7 +57,8 @@ async def read_root():
     <h1>Simple Inventory Business Logic Endpoints</h1>
     <ul>
         <li><a href="/items">GET /items</a> - Get list of inventory items</li>
-        <li>POST /items - Create a new inventory item (accepts JSON: <code>{"name": "string", "quantity": int}</code>)</li>
+        <li>POST /items - Create a new inventory item (accepts JSON:
+            <code>{"name": "string", "quantity": int}</code>)</li>
         <li>GET /items/{id} - Get details for a specific item</li>
     </ul>
 </body>
@@ -61,11 +66,12 @@ async def read_root():
 """
     return HTMLResponse(content=html_content, status_code=200)
 
+
 @app.get("/items")
 async def get_items(request: Request):
     if not db_pool:
         raise HTTPException(status_code=500, detail="Database pool not initialized")
-    
+
     try:
         async with db_pool.acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
@@ -103,11 +109,12 @@ async def get_items(request: Request):
     else:
         return items
 
+
 @app.post("/items", status_code=201)
 async def create_item(item: ItemCreate):
     if not db_pool:
         raise HTTPException(status_code=500, detail="Database pool not initialized")
-    
+
     try:
         async with db_pool.acquire() as conn:
             async with conn.cursor() as cur:
@@ -120,11 +127,12 @@ async def create_item(item: ItemCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database insert failed: {str(e)}")
 
+
 @app.get("/items/{id}")
 async def get_item(id: int, request: Request):
     if not db_pool:
         raise HTTPException(status_code=500, detail="Database pool not initialized")
-    
+
     try:
         async with db_pool.acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
@@ -172,9 +180,11 @@ async def get_item(id: int, request: Request):
             item["created_at"] = item["created_at"].isoformat()
         return item
 
+
 @app.get("/health/alive")
 async def health_alive():
     return PlainTextResponse("OK", status_code=200)
+
 
 @app.get("/health/ready")
 async def health_ready():
@@ -189,12 +199,12 @@ async def health_ready():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connection failed: {str(e)}")
 
+
 if __name__ == "__main__":
     import uvicorn
-    import os
-    
+
     app_host = os.environ.get("APP_HOST", "127.0.0.1")
-    
+
     if os.environ.get("LISTEN_FDS"):
         print("Starting uvicorn under systemd socket activation on FD 3...")
         uvicorn.run("app.main:app", fd=3, log_level="info")

@@ -2,17 +2,18 @@ import asyncio
 import argparse
 import aiomysql
 
+
 async def run_migration():
     parser = argparse.ArgumentParser(description="MariaDB Migration Script")
     parser.add_argument('--db-host', default='127.0.0.1', help="Database host")
     parser.add_argument('--db-user', default='app_user', help="Database user")
     parser.add_argument('--db-password', default='', help="Database password")
     parser.add_argument('--db-name', default='inventory_db', help="Database name")
-    
+
     args = parser.parse_args()
-    
+
     print(f"Connecting to MariaDB at host {args.db_host}...")
-    
+
     try:
         conn = await aiomysql.connect(
             host=args.db_host,
@@ -23,14 +24,14 @@ async def run_migration():
     except Exception as e:
         print(f"Failed to connect to MariaDB host to check database existence: {e}")
         return
-    
+
     async with conn.cursor() as cur:
         print(f"Ensuring database '{args.db_name}' exists...")
         await cur.execute(f"CREATE DATABASE IF NOT EXISTS {args.db_name}")
-        
+
     conn.close()
     await conn.ensure_closed()
-    
+
     try:
         conn = await aiomysql.connect(
             host=args.db_host,
@@ -42,7 +43,7 @@ async def run_migration():
     except Exception as e:
         print(f"Failed to connect to database '{args.db_name}': {e}")
         return
-        
+
     async with conn.cursor() as cur:
         print("Ensuring table 'inventory' exists...")
         await cur.execute("""
@@ -54,9 +55,10 @@ async def run_migration():
             )
         """)
         print("Database migrations applied successfully.")
-        
+
     conn.close()
     await conn.ensure_closed()
+
 
 if __name__ == "__main__":
     asyncio.run(run_migration())
