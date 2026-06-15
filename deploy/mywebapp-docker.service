@@ -1,0 +1,26 @@
+[Unit]
+Description=My Web App Docker Container Service
+After=docker.service mariadb.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+EnvironmentFile=/etc/mywebapp/env
+ExecStartPre=-/usr/bin/docker stop mywebapp
+ExecStartPre=-/usr/bin/docker rm mywebapp
+ExecStartPre=/usr/bin/docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+ExecStart=/usr/bin/docker run --name mywebapp \
+  -p 5200:5200 \
+  --add-host=host.docker.internal:host-gateway \
+  -e APP_HOST=0.0.0.0 \
+  -e DB_HOST=host.docker.internal \
+  -e DB_USER=app_user \
+  -e DB_PASSWORD=app_password \
+  -e DB_NAME=inventory_db \
+  ${IMAGE_NAME}:${IMAGE_TAG}
+ExecStop=/usr/bin/docker stop mywebapp
+ExecStopPost=-/usr/bin/docker rm mywebapp
+
+[Install]
+WantedBy=multi-user.target
