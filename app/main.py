@@ -191,9 +191,13 @@ async def health_ready():
 
 if __name__ == "__main__":
     import uvicorn
+    import os
+    
+    app_host = os.environ.get("APP_HOST", "127.0.0.1")
+    
     if os.environ.get("LISTEN_FDS"):
         print("Starting uvicorn under systemd socket activation on FD 3...")
         uvicorn.run("app.main:app", fd=3, log_level="info")
     else:
-        print(f"Starting uvicorn on port {args.port}...")
-        uvicorn.run("app.main:app", host="127.0.0.1", port=args.port, log_level="info")
+        print(f"Starting uvicorn on {app_host}:{args.port}...")
+        uvicorn.run("app.main:app", host=app_host, port=args.port, log_level="info")
