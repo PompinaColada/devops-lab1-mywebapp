@@ -41,7 +41,9 @@ jobs:
         run: shellcheck deploy/deploy.sh
 
       - name: Run Docker Linter (hadolint)
-        run: hadolint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
 
       - name: Run Tests with Coverage
         run: pytest --cov=app --cov-report=xml --cov-report=term-missing --cov-fail-under=40
